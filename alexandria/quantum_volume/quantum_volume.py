@@ -33,12 +33,19 @@ def quantum_volume_reference(dimension, seed=None):
             .. jupyter-execute::
 
                 from alexandria.quantum_volume import quantum_volume_reference
+                from alexandria.visuals import circuit_widget
 
                 qc = quantum_volume_reference(5, seed=123456)
-                qc.draw(output='mpl')
+                circuit_widget(qc)
 
-        IBM Quantum Basis Set Decomposition:
+        .. container:: toggle
+
+            .. container:: header
+        
+                **IBM Quantum Basis Set Decomposition**
+            
             .. jupyter-execute::
+                :hide-code:
 
                 qc.decompose().draw(output='mpl')
 
