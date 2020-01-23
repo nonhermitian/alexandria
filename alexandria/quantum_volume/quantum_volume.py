@@ -51,10 +51,15 @@ def quantum_volume_reference(dimension, seed=None):
 
     """
     #setup RandomState
+    if seed is None:
+        seed = np.random.randint(np.iinfo(np.int32).max-1)
     rnd = np.random.RandomState(seed)  # pylint: disable=no-member
+
+    qv_dim = 2**dimension
+    circ_name = 'QV{}_{}'.format(qv_dim, seed)
     
     # build the circuit
-    qc = QuantumCircuit(dimension)
+    qc = QuantumCircuit(dimension, name=circ_name)
     for _ in range(dimension):
         # Generate uniformly random permutation Pj of [0...n-1]
         perm = rnd.permutation(dimension)
@@ -66,22 +71,40 @@ def quantum_volume_reference(dimension, seed=None):
     return qc
 
 
-def quantum_volume_generator(dimension, seed=None):
+def quantum_volume_generator(dimension, seed=None, samples=None):
     """A generator for quantum volume circuits.
+
+    Name of the circuits is QV{volume}_{seed}+{offset},
+    where volume is :math:`2^{dimension}`, `seed` is the seed
+    used in the random number generator, and `offset` is the number
+    of times the generator was called; the first call has `offset=0`.
     
     Parameters:
         dimension (int): Dimension of QV circuit.
         seed (int): Optional seed at which to start generator.
+        samples (int): Optional number of samples to generate.
+                       Default is infinite.
     
-    Yields:
+    Returns:
         QuantumCircuit
     """
     #setup RandomState
-    rnd = np.random.RandomState(seed)  # pylint: disable=no-member
+    if seed is None:
+        seed = np.random.randint(np.iinfo(np.int32).max-1)
+    rnd = np.random.RandomState(seed) # pylint: disable=no-member
+
+    qv_dim = 2**dimension
+    circ_name = 'QV{}_{}'.format(qv_dim, seed)
     
+    count = 0
     while True:
+        if samples and count >= samples:
+            break
         # build the circuit
-        qc = QuantumCircuit(dimension)
+        _name = circ_name
+        if count:
+            _name = _name + '+{}'.format(count)
+        qc = QuantumCircuit(dimension, name=_name)
         for _ in range(dimension):
             # Generate uniformly random permutation Pj of [0...n-1]
             perm = rnd.permutation(dimension)
@@ -91,3 +114,4 @@ def quantum_volume_generator(dimension, seed=None):
                 pair = int(perm[2*k]), int(perm[2*k+1])
                 qc.append(U, [pair[0],pair[1]])
         yield qc
+        count += 1

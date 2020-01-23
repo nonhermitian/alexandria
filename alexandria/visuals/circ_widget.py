@@ -23,12 +23,14 @@ def circuit_widget(qc):
         fig = qc.draw(output='mpl')
         display(fig)
         
-    html = "<p>"
+    html = "<p><font size='2' face='monospace'>"
     for line in qc.qasm().split('\n'):
         html += line + '<br>'
-    html += "</p>"
+    html += "</font></p>"
 
-    qasm_output = wid.HTML(html, layout=wid.Layout(width='90%'))
+    qasm_output = wid.HTML(html, layout=wid.Layout(width='90%',
+                                                   max_height='400px',
+                                                   overflow='hidden scroll'))
 
     circ_data = circuit_data_table(qc)
     hrow = wid.HBox(children=[circ_data, qasm_output])
