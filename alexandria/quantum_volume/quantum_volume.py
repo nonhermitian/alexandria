@@ -70,7 +70,7 @@ def quantum_volume_reference(dimension, seed=None):
         # Generate uniformly random permutation Pj of [0...n-1]
         perm = rnd.permutation(dimension)
         # For each pair p in Pj, generate Haar random SU(4)
-        for k in range(int(np.floor(dimension/2))):
+        for k in range(int(dimension/2)):
             U = random_unitary(4, seed=rnd.randint(MAX_INT))
             pair = int(perm[2*k]), int(perm[2*k+1])
             qc.append(U, [pair[0],pair[1]])
@@ -115,7 +115,7 @@ def quantum_volume_generator(dimension, seed=None, samples=None):
             # Generate uniformly random permutation Pj of [0...n-1]
             perm = rnd.permutation(dimension)
             # For each pair p in Pj, generate Haar random SU(4)
-            for k in range(int(np.floor(dimension/2))):
+            for k in range(int(dimension/2)):
                 U = random_unitary(4, seed=rnd.randint(MAX_INT))
                 pair = int(perm[2*k]), int(perm[2*k+1])
                 qc.append(U, [pair[0],pair[1]])
