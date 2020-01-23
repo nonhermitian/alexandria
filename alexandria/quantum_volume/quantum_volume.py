@@ -18,8 +18,14 @@ import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.quantum_info.random import random_unitary
 
+MAX_INT = np.iinfo(np.int32).max-1
+
 def quantum_volume_reference(dimension, seed=None):
     """Build a reference quantum volume circuit.
+
+    Name of the circuits is ``QV{volume}_{seed}``,
+    where volume is :math:`2^{dimension}`, and ``seed`` is the seed
+    used in the random number generator.
     
     Parameters:
         dimension (int): Dimension of QV circuit.
@@ -52,7 +58,7 @@ def quantum_volume_reference(dimension, seed=None):
     """
     #setup RandomState
     if seed is None:
-        seed = np.random.randint(np.iinfo(np.int32).max-1)
+        seed = np.random.randint(MAX_INT)
     rnd = np.random.RandomState(seed)  # pylint: disable=no-member
 
     qv_dim = 2**dimension
@@ -65,7 +71,7 @@ def quantum_volume_reference(dimension, seed=None):
         perm = rnd.permutation(dimension)
         # For each pair p in Pj, generate Haar random SU(4)
         for k in range(int(np.floor(dimension/2))):
-            U = random_unitary(4)
+            U = random_unitary(4, seed=rnd.randint(MAX_INT))
             pair = int(perm[2*k]), int(perm[2*k+1])
             qc.append(U, [pair[0],pair[1]])
     return qc
@@ -74,10 +80,10 @@ def quantum_volume_reference(dimension, seed=None):
 def quantum_volume_generator(dimension, seed=None, samples=None):
     """A generator for quantum volume circuits.
 
-    Name of the circuits is QV{volume}_{seed}+{offset},
-    where volume is :math:`2^{dimension}`, `seed` is the seed
-    used in the random number generator, and `offset` is the number
-    of times the generator was called; the first call has `offset=0`.
+    Name of the circuits is ``QV{volume}_{seed}+{offset}``,
+    where volume is :math:`2^{dimension}`, ``seed`` is the seed
+    used in the random number generator, and ``offset`` is the number
+    of times the generator was called; the first call has ``offset=0``.
     
     Parameters:
         dimension (int): Dimension of QV circuit.
@@ -90,7 +96,7 @@ def quantum_volume_generator(dimension, seed=None, samples=None):
     """
     #setup RandomState
     if seed is None:
-        seed = np.random.randint(np.iinfo(np.int32).max-1)
+        seed = np.random.randint(MAX_INT)
     rnd = np.random.RandomState(seed) # pylint: disable=no-member
 
     qv_dim = 2**dimension
@@ -110,7 +116,7 @@ def quantum_volume_generator(dimension, seed=None, samples=None):
             perm = rnd.permutation(dimension)
             # For each pair p in Pj, generate Haar random SU(4)
             for k in range(int(np.floor(dimension/2))):
-                U = random_unitary(4)
+                U = random_unitary(4, seed=rnd.randint(MAX_INT))
                 pair = int(perm[2*k]), int(perm[2*k+1])
                 qc.append(U, [pair[0],pair[1]])
         yield qc
