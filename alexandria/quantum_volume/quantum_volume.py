@@ -121,3 +121,55 @@ def quantum_volume_generator(dimension, seed=None, samples=None):
                 qc.append(U, [pair[0],pair[1]])
         yield qc
         count += 1
+
+class quantum_volume_gen():
+    def __init__(self, dimension, seed=None):
+        """A generator for quantum volume circuits.
+
+        Parameters:
+            dimension (int): Dimension of QV circuit.
+            seed (int): Optional seed at which to start generator.
+        """
+        if seed is None:
+            seed = np.random.randint(MAX_INT)
+        self.rnd = np.random.RandomState(seed) # pylint: disable=no-member
+        self.dimension = dimension
+        qv_dim = 2**dimension
+        self.circ_name = 'QV{}_{}'.format(qv_dim, seed)
+        self.count = 0
+        
+    def __call__(self, samples=None):
+        """
+        Generate a collection or quantum circuits with names
+         ``QV{volume}_{seed}+{offset}``, where volume is :math:`2^{dimension}`,
+         ``seed`` is the seed used in the random number generator, and 
+         ``offset`` is the number of times the generator was called; the first 
+         call has ``offset=0``.
+
+        Parameters:
+            samples (int): Optional number of samples to generate.
+                           Default is 1.
+
+        Returns:
+            list: A list of QuantumCircuits.
+        """
+        if samples is None:
+            samples = 1
+        out = []
+        for _ in range(samples):
+            qc_name = self.circ_name + '+{}'.format(self.count)
+            qc = QuantumCircuit(self.dimension, name=qc_name)
+            for _ in range(self.dimension):
+                # Generate uniformly random permutation Pj of [0...n-1]
+                perm = self.rnd.permutation(self.dimension)
+                # For each pair p in Pj, generate Haar random SU(4)
+                for k in range(int(self.dimension/2)):
+                    U = random_unitary(4, seed=self.rnd.randint(MAX_INT))
+                    pair = int(perm[2*k]), int(perm[2*k+1])
+                    qc.append(U, [pair[0],pair[1]])
+            out.append(qc)
+            self.count += 1
+        return out
+
+    def __next__(self):
+        return self.__call__()[0]
