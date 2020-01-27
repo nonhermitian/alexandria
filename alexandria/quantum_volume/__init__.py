@@ -34,8 +34,8 @@ Generators
 .. autosummary::
    :toctree: ../stubs/
 
-   quantum_volume_generator
+   QuantumVolumeGenerator
 """
 
 from .quantum_volume import (quantum_volume_reference,
-                             quantum_volume_generator)
+                             QuantumVolumeGenerator)

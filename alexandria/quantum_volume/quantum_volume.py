@@ -76,79 +76,46 @@ def quantum_volume_reference(dimension, seed=None):
             qc.append(U, [pair[0],pair[1]])
     return qc
 
-
-def quantum_volume_generator(dimension, seed=None, samples=None):
-    """A generator for quantum volume circuits.
-
-    Name of the circuits is ``QV{volume}_{seed}+{offset}``,
-    where volume is :math:`2^{dimension}`, ``seed`` is the seed
-    used in the random number generator, and ``offset`` is the number
-    of times the generator was called; the first call has ``offset=0``.
-    
-    Parameters:
-        dimension (int): Dimension of QV circuit.
-        seed (int): Optional seed at which to start generator.
-        samples (int): Optional number of samples to generate.
-                       Default is infinite.
-    
-    Returns:
-        QuantumCircuit
-    """
-    #setup RandomState
-    if seed is None:
-        seed = np.random.randint(MAX_INT)
-    rnd = np.random.RandomState(seed) # pylint: disable=no-member
-
-    qv_dim = 2**dimension
-    circ_name = 'QV{}_{}'.format(qv_dim, seed)
-    
-    count = 0
-    while True:
-        if samples and count >= samples:
-            break
-        # build the circuit
-        _name = circ_name
-        if count:
-            _name = _name + '+{}'.format(count)
-        qc = QuantumCircuit(dimension, name=_name)
-        for _ in range(dimension):
-            # Generate uniformly random permutation Pj of [0...n-1]
-            perm = rnd.permutation(dimension)
-            # For each pair p in Pj, generate Haar random SU(4)
-            for k in range(int(dimension/2)):
-                U = random_unitary(4, seed=rnd.randint(MAX_INT))
-                pair = int(perm[2*k]), int(perm[2*k+1])
-                qc.append(U, [pair[0],pair[1]])
-        yield qc
-        count += 1
-
-class quantum_volume_gen():
+class QuantumVolumeGenerator():
     def __init__(self, dimension, seed=None):
         """A generator for quantum volume circuits.
 
+        Generates a collection of quantum circuits with names
+        ``QV{volume}_{seed}+{offset}``, where volume is :math:`2^{dimension}`,
+        ``seed`` is the seed used in the random number generator, and 
+        ``offset`` is the number of times the generator was called; the first 
+        call has ``offset=0``.
+
         Parameters:
             dimension (int): Dimension of QV circuit.
-            seed (int): Optional seed at which to start generator.
+            seed (int): Optional seed at which to start generator
+
+        Example:
+
+        .. jupyter-execute::
+
+            from alexandria.quantum_volume import QuantumVolumeGenerator
+            qv_gen = QuantumVolumeGenerator(4, seed=9876)
+
+            qv16_circs = qv_gen(5)
+            for circ in qv16_circs:
+                print(circ.name)
+
         """
         if seed is None:
             seed = np.random.randint(MAX_INT)
-        self.rnd = np.random.RandomState(seed) # pylint: disable=no-member
+        self.seed = seed
+        self.rnd = np.random.RandomState(self.seed) # pylint: disable=no-member
         self.dimension = dimension
         qv_dim = 2**dimension
-        self.circ_name = 'QV{}_{}'.format(qv_dim, seed)
+        self.circ_name = 'QV{}_{}'.format(qv_dim, self.seed)
         self.count = 0
         
     def __call__(self, samples=None):
-        """
-        Generate a collection or quantum circuits with names
-         ``QV{volume}_{seed}+{offset}``, where volume is :math:`2^{dimension}`,
-         ``seed`` is the seed used in the random number generator, and 
-         ``offset`` is the number of times the generator was called; the first 
-         call has ``offset=0``.
+        """Creates a collection of Quantum Volume circuits.
 
         Parameters:
-            samples (int): Optional number of samples to generate.
-                           Default is 1.
+            samples (int): Number of circuits to generate.
 
         Returns:
             list: A list of QuantumCircuits.
